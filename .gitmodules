@@ -1,0 +1,9 @@
+[submodule "src/NVorbis"]
+	path = src/NVorbis
+	url = https://github.com/JJagg/NVorbis.git
+[submodule "src/OalSoft.NET"]
+	path = src/OalSoft.NET
+	url = https://github.com/Jjagg/OalSoft.NET
+[submodule "src/CSharpCurses"]
+	path = src/CSharpCurses
+	url = https://github.com/Jjagg/CSharpCurses

@@ -1,0 +1,11 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AlPipe.Vorbis\AlPipe.Vorbis.csproj" />
+    <ProjectReference Include="..\AlPipe\AlPipe.csproj" />
+    <ProjectReference Include="..\CSharpCurses\src\CSharpCurses.csproj" />
+  </ItemGroup>
+</Project>
