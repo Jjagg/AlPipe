@@ -61,6 +61,33 @@ namespace AlPipe
         /// <summary>
         /// Add a number of items to the buffer. Overrides oldest items when full.
         /// </summary>
+        /// <param name="items">Items from which to add.</param>
+        /// <param name="count">Number of items to add. If more than the number of items, all items are enqueued.</param>
+        public void Enqueue(IEnumerable<T> items, int count)
+        {
+            var realCount = 0;
+            foreach (var item in items)
+            {
+                if (realCount >= count)
+                    break;
+                End = (End + 1) % Capacity;
+                _buffer[End] = item;
+                realCount++;
+            }
+
+            var overwritten = realCount - Available;
+            if (overwritten > 0)
+            {
+                Start = (Start + overwritten) % Capacity;
+                Count = Capacity;
+            }
+            else
+                Count += realCount;
+        }
+
+        /// <summary>
+        /// Add a number of items to the buffer. Overrides oldest items when full.
+        /// </summary>
         /// <param name="items">List of items from which to add.</param>
         /// <param name="start">Start index.</param>
         /// <param name="count">Number of items to add.</param>

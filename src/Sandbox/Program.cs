@@ -1,9 +1,11 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices.ComTypes;
 using System.Threading;
 using System.Threading.Tasks;
 using AlPipe;
+using AlPipe.Synth;
 using AlPipe.Vorbis;
 using CSharpCurses;
 using CSharpCurses.Controls;
@@ -15,7 +17,7 @@ namespace OggPlayer
     {
         private static void Main(string[] args)
         {
-            var filename = args[0];
+            var filename = args.Length > 0 ? args[0] : null;
             var startPos = args.Length >= 2 ? TimeSpan.FromSeconds(int.Parse(args[1])) : TimeSpan.Zero;
 
             BufferManager.Logger.SetLogFile("log.txt");
@@ -38,14 +40,64 @@ namespace OggPlayer
                 Console.WriteLine("Opened the device!");
 
                 using (var player = new AudioPlayer(device))
-                using (var oggDecoder = new OggDecoder(filename))
                 {
+                    var oggDecoder = filename == null ? null : new OggDecoder(filename);
+                    var synth = new SynthStream(1000);
+
                     player.Load(oggDecoder);
                     player.Play();
-                    player.Stream.TimePosition = startPos;
+                    player.Source.TimePosition = startPos;
 
                     Console.Write("Press Enter to stop.");
-                    Console.ReadLine();
+                    string input;
+                    while (!string.IsNullOrWhiteSpace(input = Console.ReadLine()))
+                    {
+                        if (int.TryParse(input, out var freq))
+                        {
+                            if (freq >= 20 && freq <= 20000)
+                            {
+                                synth.Frequency = freq;
+                                player.Load(synth);
+                            }
+                        }
+                        else if (input == "song")
+                        {
+                            if (oggDecoder != null)
+                                player.Load(oggDecoder);
+                        }
+                        else if (input == "pause")
+                            player.Pause();
+                        else if (input == "play")
+                            player.Play();
+                        else if (input.StartsWith("pitch"))
+                        {
+                            var s = input.Split(" ", StringSplitOptions.RemoveEmptyEntries);
+                            if (s.Length >= 2 && float.TryParse(s[1], out var val))
+                                player.AlSource.Pitch = val;
+                        }
+                        else if (input.StartsWith("gain"))
+                        {
+                            var s = input.Split(" ", StringSplitOptions.RemoveEmptyEntries);
+                            if (s.Length >= 2 && float.TryParse(s[1], out var val))
+                                player.AlSource.Gain = val;
+                        }
+                        else if (input.StartsWith("pos"))
+                        {
+                            if (oggDecoder == null)
+                                    continue;
+                            var s = input.Split(" ", StringSplitOptions.RemoveEmptyEntries);
+                            if (s.Length >= 2 && int.TryParse(s[1], out var val))
+                                oggDecoder.TimePosition = TimeSpan.FromSeconds(val);
+                        } else if (input == "sine")
+                            synth.Oscillator = OscillatorFunctions.Sine;
+                        else if (input == "triangle")
+                            synth.Oscillator = OscillatorFunctions.Triangle;
+                        else if (input == "square")
+                            synth.Oscillator = OscillatorFunctions.Square;
+                        else if (input == "saw")
+                            synth.Oscillator = OscillatorFunctions.SawTooth;
+                    }
+                    oggDecoder?.Dispose();
                 }
             }
 
@@ -66,7 +118,7 @@ namespace OggPlayer
                 using (_streamer = new OggStreamer(alBufferSize, 2 * buffersPerSecond))
                 {
                     // buffer should store 1s of data
-                    var ourBufferSize = _stream.SampleRate * _stream.Channels;
+                    var ourBufferSize = _stream.SampleRate;
 
                     _sampleBuffer = new CircularBuffer<float>(ourBufferSize);
 

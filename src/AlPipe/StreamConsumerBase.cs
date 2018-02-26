@@ -7,7 +7,7 @@
     public abstract class StreamConsumerBase<T> : IStreamConsumer<T> where T : struct
     {
         /// <inheritdoc />
-        public ISampleStream<T> Stream { get; }
+        public ISampleStream<T> Source { get; }
 
         /// <summary>
         /// Create a new SinkBase.
@@ -15,7 +15,7 @@
         /// <param name="source">Source for the sink.</param>
         protected StreamConsumerBase(ISampleStream<T> source)
         {
-            Stream = source;
+            Source = source;
         }
     }
 }

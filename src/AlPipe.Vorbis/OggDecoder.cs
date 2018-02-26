@@ -13,7 +13,7 @@ namespace AlPipe.Vorbis
         private bool _disposed;
 
         /// <inheritdoc />
-        public bool CanSeek => true;
+        public bool IsStatic => true;
         /// <inheritdoc />
         public long Length => _reader.TotalSamples;
         /// <inheritdoc />
@@ -69,11 +69,14 @@ namespace AlPipe.Vorbis
             if (samples.Length < offset + count)
                 throw new ArgumentException("Samples array not large enough.", nameof(samples));
 
+            // make sure we align to the channels
+            count -= count % Format.Channels;
+
             var read = _reader.ReadSamples(samples, offset, count);
 
             if (SamplesRead != null)
             {
-                var args = new SamplesReadEventArgs<float>(samples, read);
+                var args = new SamplesEventArgs<float>(samples, read);
                 SamplesRead?.Invoke(this, args);
             }
 
@@ -81,7 +84,7 @@ namespace AlPipe.Vorbis
         }
 
         /// <inheritdoc />
-        public event EventHandler<EventArgs> SamplesRead;
+        public event EventHandler<SamplesEventArgs<float>> SamplesRead;
 
         private void Dispose(bool disposing)
         {

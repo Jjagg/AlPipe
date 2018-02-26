@@ -9,6 +9,6 @@
         /// <summary>
         /// Stream to consume.
         /// </summary>
-        ISampleStream<T> Stream { get; }
+        ISampleStream<T> Source { get; }
     }
 }

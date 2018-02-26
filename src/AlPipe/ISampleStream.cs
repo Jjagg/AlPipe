@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace AlPipe
 {
@@ -10,23 +9,31 @@ namespace AlPipe
     public interface ISampleStream<T> where T : struct
     {
         /// <summary>
-        /// Indicates if this stream supports seeking.
+        /// Indicates if this is a static length stream.
         /// </summary>
-        bool CanSeek { get; }
+        /// <remarks>
+        ///   A static length stream is typically a decoder, reading from a file.
+        ///   Examples of a non-static length stream are a generator or capture device.
+        /// </remarks>
+        bool IsStatic { get; }
         /// <summary>
         /// Number of <see cref="T"/> in this stream.
+        /// <see cref="IsStatic"/> indicates if this is supported. If it is not this returns 0.
         /// </summary>
         long Length { get; }
         /// <summary>
-        /// Duration of the entire stream.
+        /// Duration of the entire stream. <see cref="IsStatic"/> indicates if setting is supported.
+        /// <see cref="IsStatic"/> indicates if this is supported. If it is not this returns <see cref="TimeSpan.Zero"/>.
         /// </summary>
         TimeSpan Duration { get; }
         /// <summary>
-        /// Get or set the sample position. <see cref="CanSeek"/> indicates if setting is supported.
+        /// Get or set the sample position.
+        /// <see cref="IsStatic"/> indicates if this is supported. If it is not, getting this returns 0.
         /// </summary>
         long SamplePosition { get; set; }
         /// <summary>
-        /// Get or set the time position. <see cref="CanSeek"/> indicates if setting is supported.
+        /// Get or set the time position. <see cref="IsStatic"/> indicates if setting is supported.
+        /// <see cref="IsStatic"/> indicates if this is supported. If it is not, getting this returns <see cref="TimeSpan.Zero"/>.
         /// </summary>
         TimeSpan TimePosition { get; set; }
         /// <summary>
@@ -46,33 +53,6 @@ namespace AlPipe
         /// <summary>
         /// Invoked when samples are read from the stream.
         /// </summary>
-        event EventHandler<EventArgs> SamplesRead;
-    }
-
-    /// <summary>
-    /// Event arguments for the <see cref="ISampleStream{T}.SamplesRead"/> event.
-    /// </summary>
-    /// <typeparam name="T">Type of the samples.</typeparam>
-    public class SamplesReadEventArgs<T> : EventArgs
-    {
-        /// <summary>
-        /// Read sample data.
-        /// </summary>
-        public readonly IEnumerable<T> Samples;
-        /// <summary>
-        /// Number of samples.
-        /// </summary>
-        public readonly int Count;
-
-        /// <summary>
-        /// Create a new <see cref="SamplesReadEventArgs{T}"/> instance.
-        /// </summary>
-        /// <param name="samples">Read sample data.</param>
-        /// <param name="count">Number of samples.</param>
-        public SamplesReadEventArgs(IEnumerable<T> samples, int count)
-        {
-            Samples = samples;
-            Count = count;
-        }
+        event EventHandler<SamplesEventArgs<T>> SamplesRead;
     }
 }

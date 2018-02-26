@@ -7,7 +7,7 @@ using OalSoft.NET;
 
 namespace AlPipe
 {
-        /// <inheritdoc />
+    /// <inheritdoc />
     public class AudioBufferTracker : IAudioBufferTracker
     {
         private float[] _sampleBuffer;
@@ -107,8 +107,14 @@ namespace AlPipe
                     }
                 }
             }
+
             if (td != null)
+            {
+                var buffers = td.Player.AlSource.QueuedBuffers();
+                for (var i = 0; i < buffers; i++)
+                    td.Player.AlSource.UnqueueBuffer();
                 td.Player.Device.DeleteBuffers(td.Buffers, td.BufferCount);
+            }
         }
 
         /// <inheritdoc />
@@ -218,7 +224,7 @@ namespace AlPipe
 
         private bool FillBuffer(TrackingData td, uint buffer)
         {
-            var stream = td.Player.Stream;
+            var stream = td.Player.Source;
             var read = stream.Read(_sampleBuffer, 0, td.BufferSize);
             if (td.Player.Loop)
             {

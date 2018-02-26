@@ -9,7 +9,7 @@ namespace AlPipe
         private bool _loop;
 
         /// <inheritdoc />
-        public ISampleStream<float> Stream { get; private set; }
+        public ISampleStream<float> Source { get; private set; }
         /// <inheritdoc />
         public AlStreamingSource AlSource { get; }
         /// <inheritdoc />
@@ -36,9 +36,9 @@ namespace AlPipe
         }
 
         /// <inheritdoc />
-        public TimeSpan Duration => Stream?.Duration ?? TimeSpan.Zero;
+        public TimeSpan Duration => Source?.Duration ?? TimeSpan.Zero;
         /// <inheritdoc />
-        public TimeSpan Position => Stream?.TimePosition ?? TimeSpan.Zero;
+        public TimeSpan Position => Source?.TimePosition ?? TimeSpan.Zero;
 
         /// <inheritdoc />
         public bool Loop
@@ -46,7 +46,7 @@ namespace AlPipe
             get => _loop;
             set
             {
-                if (value && !Stream.CanSeek)
+                if (value && !Source.IsStatic)
                     throw new NotSupportedException("Can't loop a stream that does not support seeking.");
                 _loop = value;
             }
@@ -82,12 +82,13 @@ namespace AlPipe
         }
 
         /// <inheritdoc />
-        public void Load(ISampleStream<float> stream, int bufferCount = 3, int bufferSize = 4096, int preCache = 2)
+        public void Load(ISampleStream<float> stream, int bufferCount = 3, int bufferSize = 4096, int preCache = 3)
         {
             Stop();
+            _tracker.Untrack(this);
 
-            Stream = stream;
-            if (!stream.CanSeek)
+            Source = stream;
+            if (!stream.IsStatic)
                 Loop = false;
 
             _tracker.Track(this, bufferCount, bufferSize, preCache);
@@ -96,7 +97,7 @@ namespace AlPipe
         /// <inheritdoc />
         public void Play()
         {
-            if (Stream == null)
+            if (Source == null)
                 return;
             if (AlSource.SourceState != SourceState.Playing)
             {
@@ -109,7 +110,7 @@ namespace AlPipe
         /// <inheritdoc />
         public void Pause()
         {
-            if (Stream == null)
+            if (Source == null)
                 return;
             if (AlSource.SourceState == SourceState.Playing)
             {
@@ -121,7 +122,7 @@ namespace AlPipe
         /// <inheritdoc />
         public void Stop()
         {
-            if (Stream == null)
+            if (Source == null)
                 return;
             var ss = AlSource.SourceState;
             if (ss == SourceState.Playing || ss == SourceState.Paused)
@@ -147,8 +148,9 @@ namespace AlPipe
 
         public void Dispose()
         {
-            AlSource.Dispose();
+            Stop();
             _tracker.Untrack(this);
+            AlSource.Dispose();
         }
     }
 

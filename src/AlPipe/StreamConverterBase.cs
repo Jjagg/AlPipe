@@ -3,55 +3,48 @@
 namespace AlPipe
 {
     /// <summary>
-    /// Base class for <see cref="IStreamConverter{TIn,TOut}"/> implementations.
+    /// Base class for stream processors that convert from one format to another.
     /// </summary>
     /// <typeparam name="TIn">Input data type.</typeparam>
     /// <typeparam name="TOut">Output data type.</typeparam>
-    public abstract class StreamConverterBase<TIn, TOut> : IStreamConverter<TIn, TOut>
+    public abstract class StreamConverterBase<TIn, TOut> : StreamProcessorBase<TIn, TOut>
         where TIn : struct
         where TOut : struct
     {
-        /// <inheritdoc />
-        public virtual ISampleStream<TIn> Stream { get; }
-
-        /// <inheritdoc />
-        public virtual bool CanSeek => Stream.CanSeek;
-
-        /// <inheritdoc />
-        public virtual long Length => Stream.Length;
-
-        public TimeSpan Duration => Stream.Duration;
-
-        /// <inheritdoc />
-        public virtual long SamplePosition
-        {
-            get => Stream.SamplePosition;
-            set => Stream.SamplePosition = value;
-        }
-
-        /// <inheritdoc />
-        public virtual TimeSpan TimePosition
-        {
-            get => Stream.TimePosition;
-            set => Stream.TimePosition = value;
-        }
-
-        /// <inheritdoc />
-        public virtual Format Format => Stream.Format;
-
         /// <summary>
-        /// Create a new <see cref="StreamConverterBase{TIn,TOut}"/>.
+        /// Buffer used to store read data from the source stream.
         /// </summary>
-        /// <param name="source">Source to convert.</param>
-        protected StreamConverterBase(ISampleStream<TIn> source)
+        protected TIn[] Buffer;
+
+        protected StreamConverterBase(ISampleStream<TIn> source, int capacity = 0)
+            : base(source)
         {
-            Stream = source;
+            Buffer = new TIn[capacity];
         }
 
-        /// <inheritdoc />
-        public abstract int Read(TOut[] samples, int offset, int count);
+        protected void EnsureBufferSize(int size)
+        {
+            if (Buffer.Length < size)
+                Buffer = new TIn[size];
+        }
 
-        /// <inheritdoc />
-        public event EventHandler<EventArgs> SamplesRead;
+        protected virtual TOut Convert(TIn input)
+        {
+            throw new NotSupportedException();
+        }
+
+        public override int Read(TOut[] samples, int offset, int count)
+        {
+            EnsureBufferSize(count);
+            var read = Source.Read(Buffer, 0, count);
+            for (var i = 0; i < read; i++)
+            {
+                var sample = Buffer[i];
+                var converted = Convert(sample);
+                samples[offset + i] = converted;
+            }
+
+            return read;
+        }
     }
 }

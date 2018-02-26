@@ -4,6 +4,7 @@
     <TargetFramework>netcoreapp2.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\AlPipe.Synth\AlPipe.Synth.csproj" />
     <ProjectReference Include="..\AlPipe.Vorbis\AlPipe.Vorbis.csproj" />
     <ProjectReference Include="..\AlPipe\AlPipe.csproj" />
     <ProjectReference Include="..\CSharpCurses\src\CSharpCurses.csproj" />

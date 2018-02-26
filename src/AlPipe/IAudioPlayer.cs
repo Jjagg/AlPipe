@@ -3,6 +3,9 @@ using OalSoft.NET;
 
 namespace AlPipe
 {
+    /// <summary>
+    /// Interface for class that plays back audio.
+    /// </summary>
     public interface IAudioPlayer : IStreamConsumer<float>, IDisposable
     {
         /// <summary>
@@ -14,12 +17,12 @@ namespace AlPipe
         /// </summary>
         AlDevice Device { get; }
         /// <summary>
-        /// Get the playback state of the stream.
+        /// Get the playback state of the player.
         /// </summary>
         PlaybackState PlaybackState { get; }
 
         /// <summary>
-        /// Total duration of the stream.
+        /// Total duration of the audio data.
         /// </summary>
         TimeSpan Duration { get; }
 
@@ -29,12 +32,13 @@ namespace AlPipe
         TimeSpan Position { get; }
 
         /// <summary>
-        /// Indicates if the player should replay the stream when it is finished.
+        /// Indicates if the player should replay the clip when it is finished.
         /// </summary>
         bool Loop { get; set; }
 
         /// <summary>
         /// Load a stream for playback.
+        /// Will set <see cref="PlaybackState"/> to <see cref="AlPipe.PlaybackState.Stopped"/>.
         /// </summary>
         /// <param name="stream">Stream to load.</param>
         /// <param name="bufferCount">Maximum number of buffers to queue.</param>
